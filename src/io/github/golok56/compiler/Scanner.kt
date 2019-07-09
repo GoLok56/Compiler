@@ -1,4 +1,4 @@
-package io.github.golok56
+package io.github.golok56.compiler
 
 class Scanner {
     private val tokenizer = Tokenizer()
@@ -13,23 +13,29 @@ class Scanner {
             currentLexeme = ""
         }
 
-
         source.forEach {
             if (it.isWhitespace()) {
-                if (it == '\n') {
+                if (it == '\n' && skipUntilNewLine) {
                     currentLexeme = ""
                     skipUntilNewLine = false
                     return@forEach
                 }
 
                 if (currentLexeme.isNotEmpty()) {
-                    if (isString) currentLexeme += it
-                    else if (currentLexeme.isNonToken()) {
-                        currentLexeme = ""
-                        skipUntilNewLine = true
+                    when {
+                        isString -> currentLexeme += it
+                        currentLexeme.isNonToken() -> {
+                            currentLexeme = ""
+                            skipUntilNewLine = true
+                        }
+                        else -> addToTokenStream()
                     }
-                    else addToTokenStream()
                 }
+                return@forEach
+            }
+
+            if (currentLexeme == "//" && !skipUntilNewLine) {
+                skipUntilNewLine = true
                 return@forEach
             }
 
@@ -38,7 +44,9 @@ class Scanner {
             }
 
             if ((it.isOperator() || it.isDelimiter()) && (currentLexeme.isNumeric() || currentLexeme.isLetter())) {
-                addToTokenStream()
+                if (!(it == '.' && currentLexeme.isNumeric())) {
+                    addToTokenStream()
+                }
             } else if ((it.isDigit() || it.isLetter()) && (currentLexeme.isOperator() || currentLexeme.isDelimiter())) {
                 addToTokenStream()
             } else if (currentLexeme.isNumeric() && it.isLetter()) {
@@ -54,8 +62,10 @@ class Scanner {
 
             currentLexeme += it
         }
-        tokenStream.add(tokenizer.getToken(currentLexeme))
-        currentLexeme = ""
+        if (!skipUntilNewLine) {
+            tokenStream.add(tokenizer.getToken(currentLexeme))
+            currentLexeme = ""
+        }
         return tokenStream
     }
 }

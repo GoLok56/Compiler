@@ -1,4 +1,4 @@
-package io.github.golok56
+package io.github.golok56.compiler
 
 fun String.isNumeric(): Boolean {
     this.forEach { if (!it.isDigit()) return false }

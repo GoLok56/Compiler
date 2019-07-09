@@ -1,8 +1,8 @@
-package io.github.golok56
+package io.github.golok56.io
 
 import java.io.File
 
-class SourceReader {
+class FileReader {
     @Throws(IllegalArgumentException::class)
     fun read(filename: String): String {
         validateFilename(filename)
